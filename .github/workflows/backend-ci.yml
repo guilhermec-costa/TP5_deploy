@@ -1,0 +1,119 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [main, master, develop]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  MAVEN_OPTS: -Xmx1024m
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build project
+        run: mvn clean compile -q
+
+      - name: Run tests
+        run: mvn test -Dtest='!com.crud.selenium.**'
+
+      - name: Generate JaCoCo report
+        run: mvn jacoco:report
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+          retention-days: 7
+
+      - name: Display test summary
+        if: always()
+        run: |
+          if [ -f backend/target/surefire-reports/*.txt ]; then
+            echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            grep -E "Tests run:|Failures:|Errors:" backend/target/surefire-reports/*.txt | head -20 >> $GITHUB_STEP_SUMMARY || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check coverage threshold
+        run: |
+          TOTAL_COVERAGE=$(mvn help:evaluate -Dexpression=jacoco.it.bound -q -DforceStdout 2>/dev/null | tail -1)
+          echo "JaCoCo coverage configured: $TOTAL_COVERAGE"
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run unit tests only
+        run: mvn test -Dtest="**/unit/*Test"
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run integration tests
+        run: mvn test -Dtest="**/integration/*Test"

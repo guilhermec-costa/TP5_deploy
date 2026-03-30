@@ -1,0 +1,38 @@
+name: Deploy to Local
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create deploy directory
+        run: mkdir -p .deploy
+
+      - name: Copy files to deploy directory
+        run: |
+          cp docker-compose.yml .deploy/
+          cp -r backend .deploy/
+          cp -r frontend .deploy/
+
+      - name: Build and start containers
+        working-directory: ./.deploy
+        run: |
+          docker-compose down
+          docker-compose build --no-cache
+          docker-compose up -d
+
+      - name: Wait for services
+        run: sleep 10
+
+      - name: Check services status
+        run: |
+          docker-compose -f .deploy/docker-compose.yml ps
