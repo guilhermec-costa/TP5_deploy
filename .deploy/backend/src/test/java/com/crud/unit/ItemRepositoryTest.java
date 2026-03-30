@@ -2,7 +2,6 @@ package com.crud.unit;
 
 import com.crud.exception.ResourceNotFoundException;
 import com.crud.model.Item;
-import com.crud.repository.InMemoryItemRepository;
 import com.crud.repository.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,7 @@ class ItemRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        repository = new InMemoryItemRepository();
+        repository = new ItemRepository();
     }
 
     @Test

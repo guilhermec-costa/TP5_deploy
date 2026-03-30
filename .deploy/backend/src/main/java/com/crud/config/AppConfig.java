@@ -3,7 +3,6 @@ package com.crud.config;
 import java.util.Map;
 
 import com.crud.controller.ItemController;
-import com.crud.repository.InMemoryItemRepository;
 import com.crud.repository.ItemRepository;
 import com.crud.repository.PostgreSQLItemRepository;
 import com.crud.service.ItemService;
@@ -17,7 +16,7 @@ public class AppConfig {
 
   public AppConfig() {
     boolean usePostgres = System.getenv("DB_HOST") != null;
-    this.repository = usePostgres ? new PostgreSQLItemRepository() : new InMemoryItemRepository();
+    this.repository = usePostgres ? new PostgreSQLItemRepository() : new ItemRepository();
     this.service = new ItemService(repository);
     this.controller = new ItemController(service);
   }

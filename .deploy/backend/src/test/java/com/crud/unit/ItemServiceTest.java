@@ -3,7 +3,6 @@ package com.crud.unit;
 import com.crud.exception.ResourceNotFoundException;
 import com.crud.exception.ValidationException;
 import com.crud.model.ItemDTO;
-import com.crud.repository.InMemoryItemRepository;
 import com.crud.repository.ItemRepository;
 import com.crud.service.ItemService;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +19,7 @@ class ItemServiceTest {
 
     @BeforeEach
     void setUp() {
-        repository = new InMemoryItemRepository();
+        repository = new ItemRepository();
         service = new ItemService(repository);
     }
 
