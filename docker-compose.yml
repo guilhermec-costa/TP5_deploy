@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: crudpass
       POSTGRES_DB: cruddb
     ports:
-      - "5441:5432"
+      - "5445:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -36,7 +36,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3001:3000"
+      - "3000:3000"
     environment:
       - REACT_APP_API_URL=http://localhost:8080
     depends_on:
