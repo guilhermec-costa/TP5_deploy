@@ -208,3 +208,37 @@ O backend já estava bem estruturado, mantendo:
 | Cobertura de testes ≥ 85% | ✅ JaCoCo configurado |
 | Workflows GitHub Actions | ✅ CI configurado |
 | Mensagens de erro claras | ✅ Tratamento de exceções |
+
+---
+
+## Deploy (Simulação)
+
+Este projeto implementa uma simulação de deploy utilizando **GitHub Actions com Self-Hosted Runner**. Essa abordagem foi escolhida para evitar custos de plataformas de deploy (como Heroku, Render, etc.) e as dores de cabeça associadas a plataformas gratuitas .
+
+### Como funciona
+
+1. **Self-Hosted Runner**: Um runner instalado na própria máquina (neste caso, a mesma máquina onde o código está sendo desenvolvido) que escuta por jobs do GitHub Actions.
+
+2. **Workflow de Deploy**: Quando há um push para a branch `master`, o workflow (`.github/workflows/deploy.yml`) é executado no runner local.
+
+3. **Docker Compose**: O workflow copia os arquivos necessários para a pasta `.deploy/` e sobe os containers (PostgreSQL, Backend e Frontend) via Docker Compose.
+
+### Diferença para um Deploy Real
+
+A única diferença para um deploy real em produção seria a **máquina alvo**:
+
+- **Deploy Real**: O runner precisaria estar em um servidor de produção (VPS, cloud, etc.), e o workflow utilizaria SSH para conectar e fazer o deploy remoto.
+
+- **Deploy Simulado (atual)**: O runner está na mesma máquina local, então o deploy acontece diretamente sem necessidade de SSH.
+
+### Configuração
+
+1. Configurar um self-hosted runner no repositório GitHub (Settings → Actions → Runners)
+2. O runner deve ter Docker instalado
+3. Ao dar push para `master`, o deploy é triggered automaticamente
+
+### Serviços Subidos
+
+- **PostgreSQL**: Porta 5440
+- **Backend**: Porta 8080
+- **Frontend**: Porta 3000
