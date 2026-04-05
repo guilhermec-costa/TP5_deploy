@@ -1,5 +1,7 @@
 # CRUD System - Manual de Execução
 
+[![JaCoCo Coverage](https://img.shields.io/badge/coverage-89%25-green)](https://github.com/guichina/infnet_subgits/actions)
+
 ## Visão Geral
 Sistema CRUD completo com backend Java (Javalin) e frontend React, incluindo testes automatizados, CI/CD com GitHub Actions e cobertura de código via JaCoCo.
 
