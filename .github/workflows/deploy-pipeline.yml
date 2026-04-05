@@ -294,6 +294,11 @@ jobs:
           mkdir -p .deploy-prod/backups
           echo "Backup timestamp: $timestamp"
 
+      - name: Copy Dockerfiles
+        run: |
+          cp backend/Dockerfile .deploy-prod/backend/
+          cp frontend/Dockerfile .deploy-prod/frontend/
+
       - name: Deploy to production
         run: |
           cp docker-compose.prod.yml .deploy-prod/ 2>/dev/null || cp docker-compose.yml .deploy-prod/
