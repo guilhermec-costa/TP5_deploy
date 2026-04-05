@@ -1,7 +1,6 @@
 # CRUD System - Manual de Execução
 
-[![Backend CI](https://github.com/guichina/infnet_subgits/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/guichina/infnet_subgits/actions/workflows/backend-ci.yml)
-[![Deploy Pipeline](https://github.com/guichina/infnet_subgits/actions/workflows/deploy-pipeline.yml/badge.svg)](https://github.com/guichina/infnet_subgits/actions/workflows/deploy-pipeline.yml)
+[![Deploy Pipeline](https://github.com/guilhermec-costa/TP5_deploy/actions/workflows/deploy-pipeline.yml/badge.svg)](https://github.com/guichina/infnet_subgits/actions/workflows/deploy-pipeline.yml)
 [![JaCoCo Coverage](https://img.shields.io/badge/coverage-89%25-green)](https://github.com/guichina/infnet_subgits/actions)
 
 ## Visão Geral
