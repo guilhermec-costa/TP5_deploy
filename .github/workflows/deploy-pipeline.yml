@@ -39,7 +39,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log: Validating deployment request
+      - name: "Log: Validating deployment request"
         run: |
           echo "::notice::Starting deployment validation"
           echo "Branch: ${{ github.ref }}"
@@ -86,7 +86,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Log: Building backend application
+      - name: "Log: Building backend application"
         run: echo "::notice::Building backend with Maven"
 
       - name: Build backend
@@ -97,7 +97,7 @@ jobs:
         working-directory: frontend
         run: npm run build || npm run build
 
-      - name: Log: Build completed successfully
+      - name: "Log: Build completed successfully"
         run: echo "::notice::Build completed - Artifacts ready for deployment"
 
       - name: Upload build artifacts
@@ -129,7 +129,7 @@ jobs:
           name: backend-artifact
           path: backend/
 
-      - name: Log: Running post-deployment Selenium tests
+      - name: "Log: Running post-deployment Selenium tests"
         run: echo "::notice::Executing Selenium smoke tests for deployment validation"
 
       - name: Run Selenium tests
@@ -137,7 +137,7 @@ jobs:
         run: mvn test -Dtest="**/selenium/*Test" || echo "::warning::Selenium tests require running services"
         continue-on-error: true
 
-      - name: Log: Post-deploy tests completed
+      - name: "Log: Post-deploy tests completed"
         run: echo "::notice::Post-deploy validation completed"
 
       - name: Create test summary
@@ -174,7 +174,7 @@ jobs:
           name: frontend-artifact
           path: .deploy/frontend/
 
-      - name: Log: Starting deployment to development
+      - name: "Log: Starting deployment to development"
         run: echo "::notice::Deploying to development environment"
 
       - name: Deploy with Docker Compose
@@ -190,7 +190,7 @@ jobs:
         run: |
           curl -f http://localhost:8080/api/health || exit 1
 
-      - name: Log: Development deployment completed
+      - name: "Log: Development deployment completed"
         run: echo "::notice::Development environment deployed successfully"
 
       - name: Create deployment summary
@@ -221,7 +221,7 @@ jobs:
           name: backend-artifact
           path: .deploy-staging/backend/
 
-      - name: Log: Starting deployment to staging
+      - name: "Log: Starting deployment to staging"
         run: echo "::notice::Deploying to staging environment"
 
       - name: Deploy to staging
@@ -237,7 +237,7 @@ jobs:
         run: |
           curl -f http://localhost:8081/api/health || exit 1
 
-      - name: Log: Staging deployment completed
+      - name: "Log: Staging deployment completed"
         run: echo "::notice::Staging environment deployed successfully"
 
       - name: Create deployment summary
@@ -272,7 +272,7 @@ jobs:
           name: frontend-artifact
           path: .deploy-prod/frontend/
 
-      - name: Log: Production deployment initiated
+      - name: "Log: Production deployment initiated"
         run: echo "::notice::🚀 Starting production deployment - Requires approval"
 
       - name: Pre-deployment backup
@@ -295,7 +295,7 @@ jobs:
         run: |
           curl -f http://localhost:8082/api/health || exit 1
 
-      - name: Log: Production deployment completed
+      - name: "Log: Production deployment completed"
         run: echo "::notice::✅ Production deployment completed successfully"
 
       - name: Create production deployment summary
@@ -338,7 +338,7 @@ jobs:
           echo "| Deploy Staging | ${{ needs.deploy-staging.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Deploy Production | ${{ needs.deploy-production.result }} |" >> $GITHUB_STEP_SUMMARY
 
-      - name: Log: Pipeline execution finished
+      - name: "Log: Pipeline execution finished"
         run: |
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
             echo "::error::Deployment pipeline completed with failures"

@@ -35,13 +35,13 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Log: Starting build process
+      - name: "Log: Starting build process"
         run: echo "::notice::Starting Maven build for version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
 
       - name: Build project
         run: mvn clean compile -q
 
-      - name: Log: Build completed successfully
+      - name: "Log: Build completed successfully"
         run: echo "::notice::Build completed successfully"
 
       - name: Run tests
@@ -51,13 +51,13 @@ jobs:
       - name: Generate JaCoCo report
         run: mvn jacoco:report
 
-      - name: Log: Running SpotBugs static analysis
+      - name: "Log: Running SpotBugs static analysis"
         run: echo "::notice::Running SpotBugs SAST analysis"
 
       - name: Run SpotBugs
         run: mvn spotbugs:check || true
 
-      - name: Log: Checking dependencies for vulnerabilities
+      - name: "Log: Checking dependencies for vulnerabilities"
         run: echo "::notice::Running OWASP Dependency Check for vulnerability scanning"
 
       - name: Run OWASP Dependency Check
@@ -120,7 +120,7 @@ jobs:
           echo "- 🛡️ OWASP Dependency Report" >> $GITHUB_STEP_SUMMARY
           echo "::set-output name=result::success"
 
-      - name: Log: CI pipeline completed
+      - name: "Log: CI pipeline completed"
         run: echo "::notice::All CI steps completed - Tests, Coverage, SAST, DAST"
 
   unit-tests:
@@ -142,7 +142,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Log: Starting unit tests
+      - name: "Log: Starting unit tests"
         run: echo "::notice::Running unit tests"
 
       - name: Run unit tests only
@@ -166,7 +166,7 @@ jobs:
           path: backend/target/surefire-reports/
           retention-days: 7
 
-      - name: Log: Unit tests completed
+      - name: "Log: Unit tests completed"
         run: echo "::notice::Unit tests execution finished"
 
   integration-tests:
@@ -188,7 +188,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Log: Starting integration tests
+      - name: "Log: Starting integration tests"
         run: echo "::notice::Running integration tests"
 
       - name: Run integration tests
@@ -212,5 +212,5 @@ jobs:
           path: backend/target/surefire-reports/
           retention-days: 7
 
-      - name: Log: Integration tests completed
+      - name: "Log: Integration tests completed"
         run: echo "::notice::Integration tests execution finished"
