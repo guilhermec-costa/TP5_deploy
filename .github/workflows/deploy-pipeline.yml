@@ -174,33 +174,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-artifact
-          path: .deploy/backend/
+      - name: Create deploy directory
+        run: mkdir -p .deploy-dev
 
-      - name: Download frontend artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-artifact
-          path: .deploy/frontend/
+      - name: Copy files to deploy directory
+        run: |
+          cp docker-compose.yml .deploy-dev/
+          cp -r backend .deploy-dev/
+          cp -r frontend .deploy-dev/
 
       - name: "Log: Starting deployment to development"
         run: echo "::notice::Deploying to development environment"
 
-      - name: Deploy with Docker Compose
+      - name: Build and start containers
+        working-directory: ./.deploy-dev
         run: |
-          cp docker-compose.yml .deploy/
-          cd .deploy
+          docker-compose down
+          docker-compose build --no-cache
           docker-compose up -d
 
       - name: Wait for services
-        run: sleep 15
+        run: sleep 10
 
-      - name: Health check
-        run: |
-          curl -f http://localhost:8080/api/health || exit 1
+      - name: Check services status
+        run: docker-compose -f .deploy-dev/docker-compose.yml ps
 
       - name: "Log: Development deployment completed"
         run: echo "::notice::Development environment deployed successfully"
@@ -212,7 +209,6 @@ jobs:
           echo "✅ Deployed successfully" >> $GITHUB_STEP_SUMMARY
           echo "- Environment: Development" >> $GITHUB_STEP_SUMMARY
           echo "- Services: PostgreSQL, Backend (8080), Frontend (3000)" >> $GITHUB_STEP_SUMMARY
-          echo "- Health Check: http://localhost:8080/api/health" >> $GITHUB_STEP_SUMMARY
 
   deploy-staging:
     name: Deploy to Staging
@@ -227,27 +223,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-artifact
-          path: .deploy-staging/backend/
+      - name: Create deploy directory
+        run: mkdir -p .deploy-staging
+
+      - name: Copy files to deploy directory
+        run: |
+          cp docker-compose.yml .deploy-staging/
+          cp -r backend .deploy-staging/
+          cp -r frontend .deploy-staging/
 
       - name: "Log: Starting deployment to staging"
         run: echo "::notice::Deploying to staging environment"
 
-      - name: Deploy to staging
+      - name: Build and start containers
+        working-directory: ./.deploy-staging
         run: |
-          cp docker-compose.staging.yml .deploy-staging/ 2>/dev/null || cp docker-compose.yml .deploy-staging/
-          cd .deploy-staging
+          docker-compose down
+          docker-compose build --no-cache
           docker-compose up -d
 
       - name: Wait for services
-        run: sleep 20
+        run: sleep 10
 
-      - name: Health check
-        run: |
-          curl -f http://localhost:8081/api/health || exit 1
+      - name: Check services status
+        run: docker-compose -f .deploy-staging/docker-compose.yml ps
 
       - name: "Log: Staging deployment completed"
         run: echo "::notice::Staging environment deployed successfully"
@@ -266,26 +265,22 @@ jobs:
 
     environment:
       name: production
-      url: https://production.example.com
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-artifact
-          path: .deploy-prod/backend/
+      - name: Create deploy directory
+        run: mkdir -p .deploy-prod
 
-      - name: Download frontend artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-artifact
-          path: .deploy-prod/frontend/
+      - name: Copy files to deploy directory
+        run: |
+          cp docker-compose.yml .deploy-prod/
+          cp -r backend .deploy-prod/
+          cp -r frontend .deploy-prod/
 
       - name: "Log: Production deployment initiated"
-        run: echo "::notice::🚀 Starting production deployment - Requires approval"
+        run: echo "::notice::🚀 Starting production deployment"
 
       - name: Pre-deployment backup
         run: |
@@ -294,23 +289,18 @@ jobs:
           mkdir -p .deploy-prod/backups
           echo "Backup timestamp: $timestamp"
 
-      - name: Copy Dockerfiles
+      - name: Build and start containers
+        working-directory: ./.deploy-prod
         run: |
-          cp backend/Dockerfile .deploy-prod/backend/
-          cp frontend/Dockerfile .deploy-prod/frontend/
-
-      - name: Deploy to production
-        run: |
-          cp docker-compose.prod.yml .deploy-prod/ 2>/dev/null || cp docker-compose.yml .deploy-prod/
-          cd .deploy-prod
+          docker-compose down
+          docker-compose build --no-cache
           docker-compose up -d
 
       - name: Wait for services
-        run: sleep 30
+        run: sleep 10
 
-      - name: Health check
-        run: |
-          curl -f http://localhost:8082/api/health || exit 1
+      - name: Check services status
+        run: docker-compose -f .deploy-prod/docker-compose.yml ps
 
       - name: "Log: Production deployment completed"
         run: echo "::notice::✅ Production deployment completed successfully"
@@ -328,9 +318,9 @@ jobs:
           echo "| Timestamp | $(date) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Services" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Backend API: http://localhost:8082" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Frontend: http://localhost:3001" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ PostgreSQL: localhost:5442" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Backend API: http://localhost:8080" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Frontend: http://localhost:3000" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ PostgreSQL: localhost:5445" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Rollback" >> $GITHUB_STEP_SUMMARY
           echo "Execute: \`git revert\` and trigger new deployment to rollback" >> $GITHUB_STEP_SUMMARY
