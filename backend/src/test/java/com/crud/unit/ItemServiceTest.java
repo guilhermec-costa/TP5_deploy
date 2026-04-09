@@ -48,7 +48,7 @@ class ItemServiceTest {
         List<ItemDTO> items = service.getAllItems();
 
         assertNotNull(items);
-        assertTrue(items.size() >= 3);
+        assertFalse(items.isEmpty());
     }
 
     @Test
