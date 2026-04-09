@@ -45,7 +45,7 @@ jobs:
         run: echo "::notice::Build completed successfully"
 
       - name: Run tests
-        run: mvn test -Dtest='!com.crud.selenium.**'
+        run: mvn test
         continue-on-error: true
 
       - name: Generate JaCoCo report
@@ -214,3 +214,56 @@ jobs:
 
       - name: "Log: Integration tests completed"
         run: echo "::notice::Integration tests execution finished"
+
+  selenium-tests:
+    name: Selenium Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Install Chrome
+        run: |
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+          apt-get update -qq
+          apt-get install -y -qq google-chrome-stable
+
+      - name: "Log: Starting selenium tests"
+        run: echo "::notice::Running selenium tests"
+
+      - name: Run selenium tests
+        run: mvn test -Dtest="**/selenium/*Test"
+        continue-on-error: true
+
+      - name: Create selenium test summary
+        run: |
+          echo "## Selenium Tests Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f target/surefire-reports/*.txt ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            grep -E "Tests run:|Skipped:" target/surefire-reports/*.txt | head -10 >> $GITHUB_STEP_SUMMARY || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload selenium test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-results
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+      - name: "Log: Selenium tests completed"
+        run: echo "::notice::Selenium tests execution finished"
