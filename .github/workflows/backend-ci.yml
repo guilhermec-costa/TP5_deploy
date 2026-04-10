@@ -5,10 +5,14 @@ on:
     branches: [main, master, develop]
     paths:
       - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [main, master, develop]
     paths:
       - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/backend-ci.yml'
   workflow_dispatch:
 
 env:
@@ -234,12 +238,60 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Install Chrome
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Log Chrome version
         run: |
-          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-          apt-get update -qq
-          apt-get install -y -qq google-chrome-stable
+          google-chrome --version || chrome --version
+
+      - name: Build backend application
+        run: mvn clean package -DskipTests -q
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Start backend application
+        run: nohup java -jar target/crud-system-1.0.0.jar > ../backend.log 2>&1 &
+
+      - name: Start frontend application
+        working-directory: frontend
+        env:
+          BROWSER: none
+          CI: "false"
+          REACT_APP_API_URL: http://localhost:8080
+        run: nohup pnpm start > ../frontend.log 2>&1 &
+
+      - name: Wait for applications to be ready
+        working-directory: .
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://localhost:8080/api/health >/dev/null && curl -fsS http://localhost:3000 >/dev/null; then
+              echo "::notice::Backend and frontend are ready"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "::error::Applications did not become ready in time"
+          echo "=== backend.log ==="
+          cat backend.log || true
+          echo "=== frontend.log ==="
+          cat frontend.log || true
+          exit 1
 
       - name: "Log: Starting selenium tests"
         run: echo "::notice::Running selenium tests"
@@ -263,6 +315,16 @@ jobs:
         with:
           name: selenium-test-results
           path: backend/target/surefire-reports/
+          retention-days: 7
+
+      - name: Upload selenium app logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-app-logs
+          path: |
+            backend.log
+            frontend.log
           retention-days: 7
 
       - name: "Log: Selenium tests completed"
